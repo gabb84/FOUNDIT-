@@ -27,13 +27,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     $query = "INSERT INTO items 
-              (item_name, category, description, location_found, date_found, image, posted_by)
-              VALUES
-              ('$item_name', '$category', '$description', '$location_found', '$date_found', '$image_name', '$posted_by')";
+    (item_name, category, description, location_found, date_found, image, posted_by, approval_status)
+    VALUES
+    ('$item_name', '$category', '$description', '$location_found', '$date_found', '$image_name', '$posted_by', 'pending')";
 
     mysqli_query($conn, $query);
 
-    header("Location: browse.php");
+    echo "<script>
+    alert('Your item was submitted and is waiting for admin approval.');
+    window.location='browse.php';
+    </script>";
     exit();
 }
 ?>
@@ -307,12 +310,16 @@ button{
         <img src="image/contact.png"> Contact Us
     </a>
 
+    <?php if(isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
+        <a href="admin/dashboard.php" class="menu-item">
+        <img src="image/admin.png"> Admin Panel
+        </a>
+    <?php endif; ?>
+
     <a href="logout.php" class="menu-item">
         <img src="image/out.png"> Log Out
     </a>
-
-</div>
-
+    </div>
 <h1>List</h1>
 
 <div class="container">

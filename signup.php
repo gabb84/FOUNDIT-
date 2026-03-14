@@ -4,41 +4,48 @@ include("config.php");
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    // Get form values safely
-    $fname = mysqli_real_escape_string($conn, $_POST['fname']);
-    $lname = mysqli_real_escape_string($conn, $_POST['lname']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['password'];
+$fname = mysqli_real_escape_string($conn, $_POST['fname']);
+$lname = mysqli_real_escape_string($conn, $_POST['lname']);
+$email = mysqli_real_escape_string($conn, $_POST['email']);
 
-    // Combine first and last name
-    $fullname = $fname . " " . $lname;
+if(!preg_match("/@student\.hau\.edu\.ph$/", $email)){
+echo "<script>
+alert('Only Holy Angel University student emails are allowed.');
+window.location='signup.php';
+</script>";
+exit();
+}
 
-    // Check if email already exists
-    $check = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
+$password = $_POST['password'];
 
-    if(mysqli_num_rows($check) > 0){
-        echo "<script>alert('Email already registered!');</script>";
-    } else {
+$fullname = $fname . " " . $lname;
 
-        // Hash password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+$check = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
 
-        // Insert user
-        $query = "INSERT INTO users (fullname, email, password)
-                  VALUES ('$fullname', '$email', '$hashed_password')";
+if(mysqli_num_rows($check) > 0){
+echo "<script>alert('Email already registered!');</script>";
+}else{
 
-        if(mysqli_query($conn, $query)){
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Auto login after signup
-            $_SESSION['user_id'] = mysqli_insert_id($conn);
+$query = "INSERT INTO users (fullname,email,password)
+VALUES ('$fullname','$email','$hashed_password')";
 
-            header("Location: home.php");
-            exit();
+if(mysqli_query($conn,$query)){
 
-        } else {
-            echo "Error: " . mysqli_error($conn);
-        }
-    }
+$_SESSION['user_id'] = mysqli_insert_id($conn);
+$_SESSION['fullname'] = $fullname;
+$_SESSION['email'] = $email;
+
+header("Location: home.php");
+exit();
+
+}else{
+echo "Error: " . mysqli_error($conn);
+}
+
+}
+
 }
 ?>
 
@@ -225,7 +232,8 @@ input[type="password"] {
                 <input type="text" name="lname" placeholder="Last Name" required>
             </div>
 
-            <input type="email" name="email" placeholder="HAU Email" required>
+            <input type="email" name="email" id="email"
+            placeholder="HAU Student Email" required>
 
             <div class="password-wrapper">
                 <input type="password" name="password" id="password" placeholder="Enter your password" required>
@@ -260,6 +268,20 @@ function togglePassword() {
     password.type = password.type === "password" ? "text" : "password";
 }
 </script>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(e){
+
+let email = document.getElementById("email").value;
+
+if(!email.endsWith("@student.hau.edu.ph")){
+    alert("Use HAU student Email");
+    e.preventDefault();
+}
+
+});
+</script>
+
 
 </body>
 </html>

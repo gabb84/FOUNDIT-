@@ -16,14 +16,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (password_verify($password, $user['password'])) {
 
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['fullname'] = $user['fullname'];
-            $_SESSION['email'] = $user['email'];
+        $_SESSION['user_id'] = $user['ID'];
+        $_SESSION['fullname'] = $user['fullname'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
 
             header("Location: home.php");
             exit();
-
-        } else {
+        }
+        else {
             echo "<script>alert('Invalid Email or Password');</script>";
         }
 

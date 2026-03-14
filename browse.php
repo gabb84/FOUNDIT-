@@ -9,7 +9,10 @@ if(!isset($_SESSION['user_id'])){
 ?>
 
 <?php
-$query = "SELECT * FROM items WHERE status='available' ORDER BY created_at DESC";
+$query = "SELECT * FROM items 
+    WHERE status='available' 
+    AND approval_status='approved'
+    ORDER BY created_at DESC";
 $result = mysqli_query($conn, $query);
 ?>
 

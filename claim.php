@@ -297,9 +297,10 @@ textarea{
     <div class="profile-header">
         <div class="profile-content">
             <a href="menu.php">
-            <img src="image/user.png" class="profile-pic">
-            <div class="profile-name">Francine Panganiban</div>
-            <div class="profile-email">fastodomingo@student.hau.edu.ph</div>
+                <img src="image/user.png" class="profile-pic">
+                <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
+                <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
+            </a>
         </div>
     </div>
 
@@ -327,11 +328,16 @@ textarea{
         <img src="image/contact.png"> Contact Us
     </a>
 
-    <a href="index.php" class="menu-item">
+    <?php if(isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
+        <a href="admin/dashboard.php" class="menu-item">
+        <img src="image/admin.png"> Admin Panel
+        </a>
+    <?php endif; ?>
+
+    <a href="logout.php" class="menu-item">
         <img src="image/out.png"> Log Out
     </a>
-
-</div>
+    </div>
 
 <div class="container">
 

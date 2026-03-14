@@ -1,3 +1,11 @@
+<?php if($_SESSION['role'] == 'admin'): ?>
+
+<a href="admin/dashboard.php" class="menu-item">
+<img src="image/admin.png"> Admin Panel
+</a>
+
+<?php endif; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

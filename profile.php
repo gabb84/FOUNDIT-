@@ -9,8 +9,11 @@ if(!isset($_SESSION['user_id'])){
 
 $user_id = $_SESSION['user_id'];
 
-$user_query = mysqli_query($conn, "SELECT fullname, email FROM users WHERE id='$user_id'");
+$user_query = mysqli_query($conn, "SELECT fullname, email FROM users WHERE ID='$user_id'");
 $user = mysqli_fetch_assoc($user_query);
+
+$activeListings = 0;
+$pendingClaims = 0;
 ?>
 
 <!DOCTYPE html>
@@ -282,12 +285,13 @@ h1{
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
 <div class="sidebar" id="sidebar">
+
     <div class="profile-header">
         <div class="profile-content">
             <a href="menu.php">
                 <img src="image/user.png" class="profile-pic">
-                <div class="profile-name"><?php echo $user['fullname']; ?></div>
-                <div class="profile-email"><?php echo $user['email']; ?></div>
+                <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
+                <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
             </a>
         </div>
     </div>
@@ -316,10 +320,15 @@ h1{
         <img src="image/contact.png"> Contact Us
     </a>
 
+    <?php if(isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
+        <a href="admin/dashboard.php" class="menu-item">
+        <img src="image/admin.png"> Admin Panel
+        </a>
+    <?php endif; ?>
+
     <a href="logout.php" class="menu-item">
         <img src="image/out.png"> Log Out
     </a>
-
 </div>
 
 <div class="container">
