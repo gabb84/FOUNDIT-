@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("config.php");
 
 if(!isset($_SESSION['user_id'])){
     header("Location: index.php");
@@ -25,8 +26,8 @@ if(!isset($_SESSION['user_id'])){
 body{
     background:url("image/menubg.png") no-repeat center center fixed;
     background-size:cover;
-    min-height:100vh;   /* change from height to min-height */
-    overflow-y:auto;    /* allow vertical scroll */
+    min-height:100vh;  
+    overflow-y:auto;    
     position:relative;
     color:white;
 }
@@ -178,7 +179,7 @@ header{
 
 /* INFO IMAGE */
 .info-image{
-    text-align:;
+    text-align:center;
     margin-bottom:20px;
 }
 
@@ -194,14 +195,10 @@ header{
     margin-bottom:40px;
 }
 
-
-
 /* WHY SECTION */
 .why-section{
     margin-top:0;
 }
-
-
 
 .why-header{
     display:flex;
@@ -226,7 +223,6 @@ header{
     margin: 0 auto;
 }
 
-
 .why-text{
     font-size:14px;
     line-height:1.7;
@@ -236,16 +232,13 @@ header{
     margin-bottom:10px;
 }
 
-
-
 /* HOW IT WORKS */
 .how-wrapper{
     background:#0e3a5f;
     border-radius:30px;
     padding:25px 20px 35px;
     margin-top:20;
-    color:white;
-    
+    color:white;  
 }
 
 /* White title attached INSIDE */
@@ -260,12 +253,10 @@ header{
     letter-spacing:4px;
 }
 
-/* Each item */
 .how-item{
     margin-bottom:25px;
 }
 
-/* Heading with horizontal line */
 .how-heading{
     display:flex;
     align-items:center;
@@ -278,7 +269,6 @@ header{
     margin-right:10px;
 }
 
-/* Line beside word */
 .how-line{
     flex:1;
     height:2px;
@@ -286,7 +276,6 @@ header{
     opacity:0.6;
 }
 
-/* Paragraph */
 .how-item p{
 
     font-size:14px;
@@ -298,10 +287,9 @@ header{
 }
 
 /* MISSION & VISION */
-/* MISSION & VISION */
 .section{
     padding:20px;
-    background:white;   /* makes background white */
+    background:white;   
 }
 
 .mv{
@@ -312,7 +300,7 @@ header{
 
 .mv h2{
     font-size:24px;
-    color:#1b4f72;   /* keep title blue */
+    color:#1b4f72;   
     margin-bottom:10px;
 }
 
@@ -320,7 +308,7 @@ header{
     font-size:13px;
     line-height:1.6;
     text-align:justify;
-    color:#000;      /* make description black */
+    color:#000;     
 }
 
 .divider{
@@ -435,9 +423,6 @@ header{
     right:0;
 }
 
-
-
-
 .logo{
     font-size:28px;
     font-weight:700;
@@ -452,6 +437,40 @@ header{
     font-size:26px;
     color:#1b4f72;
     cursor:pointer;
+}
+
+/* ============================= */
+/* NOTIFICATION BELL */
+/* ============================= */
+
+.notif-dropdown{
+display:none;
+position:absolute;
+top:60px;
+right:20px;
+background:white;
+width:260px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+z-index:1000;
+overflow:hidden;
+color:#333;
+}
+
+.notif-item{
+padding:12px 15px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+.notif-item:hover{
+background:#f5f5f5;
+}
+
+.notif-empty{
+padding:15px;
+text-align:center;
+color:#777;
 }
 
 /* ============================= */
@@ -498,10 +517,63 @@ header{
 <body>
 
 <header>
+
+    <div class="header-right">
+
+    <a href="notifications.php" class="bell">
+    🔔
+
+    <?php
+    $notif_query = mysqli_query($conn,"
+    SELECT COUNT(*) as total
+    FROM claims
+    JOIN items ON claims.item_id = items.id
+    WHERE items.posted_by='".$_SESSION['user_id']."'
+    AND claims.status='pending'
+    ");
+
+    $notif = mysqli_fetch_assoc($notif_query);
+
+    if($notif['total'] > 0){
+    echo "<span class='notif-badge'>".$notif['total']."</span>";
+    }
+    ?>
+    </a>
+
     <div class="hamburger" onclick="toggleMenu()">
-        <div></div>
-        <div></div>
-        <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    </div>
+
+    </div>
+
+    <div class="notif-dropdown" id="notifDropdown">
+
+    <?php
+
+    $claims_query = mysqli_query($conn,"
+    SELECT users.fullname, items.item_name
+    FROM claims
+    JOIN items ON claims.item_id = items.id
+    JOIN users ON claims.user_id = users.ID
+    WHERE items.posted_by='".$_SESSION['user_id']."'
+    AND claims.status='pending'
+    ORDER BY claims.created_at DESC
+    LIMIT 5
+    ");
+
+    if(mysqli_num_rows($claims_query) > 0){
+    while($row = mysqli_fetch_assoc($claims_query)){
+
+    echo "<div class='notif-item'>
+    <strong>".$row['fullname']."</strong> claimed your <strong>".$row['item_name']."</strong>
+    </div>";
+    }
+    }else{
+    echo "<div class='notif-empty'>No new notifications</div>";
+    }
+    ?>
     </div>
 </header>
 
@@ -690,20 +762,36 @@ header{
 
     <div class="footer-contact">
         ✉ foundit@hau.edu.ph<br>
-        📍 Holy Angel University, Angeles City<br>
+        &#128205; Holy Angel University, Angeles City<br>
         © 2026 FoundIt | BSIT Academic Project
     </div>
 
 </div>
-
-
-
 
 <script>
 function toggleMenu(){
     document.getElementById("sidebar").classList.toggle("active");
     document.getElementById("menuOverlay").classList.toggle("active");
 }
+
+function toggleNotif(event){
+
+event.preventDefault();
+
+let dropdown = document.getElementById("notifDropdown");
+
+dropdown.style.display =
+dropdown.style.display === "block" ? "none" : "block";
+
+}
+
+window.onclick = function(e){
+
+if(!e.target.closest(".bell")){
+document.getElementById("notifDropdown").style.display = "none";
+}
+
+};
 </script>
 
 </body>
