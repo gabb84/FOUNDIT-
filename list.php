@@ -12,13 +12,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     $item_name = mysqli_real_escape_string($conn, $_POST['item_name']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
+    if($category == "Others" && !empty($_POST['other_category'])){
+        $category = mysqli_real_escape_string($conn, $_POST['other_category']);
+    }
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $location_found = mysqli_real_escape_string($conn, $_POST['location_found']);
     $date_found = mysqli_real_escape_string($conn, $_POST['date_found']);
 
     $posted_by = $_SESSION['user_id'];
 
-    // Handle image safely
     $image_name = "";
 
     if(isset($_FILES['image']) && $_FILES['image']['error'] == 0){
@@ -329,7 +331,24 @@ button{
 <form method="POST" enctype="multipart/form-data">
 
 <input type="text" name="item_name" placeholder="Item Name" required>
-<input type="text" name="category" placeholder="Category (e.g. Wallet, Bottle)" required>
+
+<label>Category</label>
+
+<select name="category" id="category" onchange="toggleOtherCategory()" required>
+<option value="">Select Category</option>
+<option value="Bottle">Bottle</option>
+<option value="Umbrella">Umbrella</option>
+<option value="Bag">Bag</option>
+<option value="ID">ID</option>
+<option value="Wallet">Wallet</option>
+<option value="Fan">Fan</option>
+<option value="Others">Others</option>
+</select>
+
+<div id="otherCategoryBox" style="display:none; margin-bottom:20px;">
+<input type="text" name="other_category" placeholder="Enter category (e.g. Accessories)">
+</div>
+
 <input type="text" name="location_found" placeholder="Location Found" required>
 <input type="date" name="date_found" required>
 <textarea name="description" placeholder="Item Description" required></textarea>
@@ -359,6 +378,17 @@ button{
 function toggleMenu(){
     document.getElementById("sidebar").classList.toggle("active");
     document.getElementById("overlay").classList.toggle("active");
+}
+
+function toggleOtherCategory(){
+    var category = document.getElementById("category").value;
+    var otherBox = document.getElementById("otherCategoryBox");
+
+    if(category === "Others"){
+        otherBox.style.display = "block";
+    } else {
+        otherBox.style.display = "none";
+    }
 }
 
 /* DRAG FUNCTION */
