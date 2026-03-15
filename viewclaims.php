@@ -1,7 +1,53 @@
-<?php 
-// Dummy actions (for demo only)
-if(isset($_GET['action'])){
-    $message = "Action performed: " . htmlspecialchars($_GET['action']);
+<?php
+session_start();
+include("config.php");
+
+if(!isset($_SESSION['user_id'])){
+    header("Location: index.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+/* ACCEPT CLAIM */
+if(isset($_GET['accept'])){
+    $claim_id = intval($_GET['accept']);
+
+    $claim = mysqli_fetch_assoc(mysqli_query($conn,
+        "SELECT * FROM claims WHERE id='$claim_id'"
+    ));
+
+    $item_id = $claim['item_id'];
+
+    mysqli_query($conn,"UPDATE claims SET status='approved' WHERE id='$claim_id'");
+    mysqli_query($conn,"UPDATE items SET status='claimed' WHERE id='$item_id'");
+    mysqli_query($conn,"UPDATE claims SET status='rejected' WHERE item_id='$item_id' AND id!='$claim_id'");
+}
+
+/* REJECT CLAIM */
+if(isset($_GET['reject'])){
+    $claim_id = intval($_GET['reject']);
+    mysqli_query($conn,"UPDATE claims SET status='rejected' WHERE id='$claim_id'");
+}
+
+/* GET CLAIMS FOR ITEMS POSTED BY USER */
+$query = "
+SELECT claims.*, items.item_name, items.id AS item_code,
+users.fullname, users.email
+FROM claims
+JOIN items ON claims.item_id = items.id
+JOIN users ON claims.user_id = users.ID
+WHERE items.posted_by='$user_id'
+ORDER BY claims.created_at DESC
+";
+
+$result = mysqli_query($conn,$query);
+
+/* GROUP CLAIMS BY ITEM */
+$claims_by_item = [];
+
+while($row = mysqli_fetch_assoc($result)){
+    $claims_by_item[$row['item_id']][] = $row;
 }
 ?>
 
@@ -273,8 +319,8 @@ h1{
         <div class="profile-content">
             <a href="menu.php">
             <img src="image/user.png" class="profile-pic">
-            <div class="profile-name">Francine Panganiban</div>
-            <div class="profile-email">fastodomingo@student.hau.edu.ph</div>
+            <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
+            <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
         </div>
     </div>
 
@@ -329,33 +375,46 @@ h1{
 <div class="success"><?php echo $message; ?></div>
 <?php endif; ?>
 
-<!-- CLAIM 1 -->
+<?php foreach($claims_by_item as $item_id => $claims): ?>
+
 <div class="claim-card">
-    <h3>Claims for O1C</h3>
-    <p><strong>Claimant:</strong> Fendi N. Cruz</p>
-    <p><strong>Email:</strong> fjccruz@student.hau.edu.ph</p>
-    <p><strong>Submitted:</strong> February 15, 2026</p>
-    <br>
-    <p><strong>Answers:</strong></p>
-    <p>- Brand: Seiko</p>
-    <p>- Cards: 3</p>
-    <p>- ID Inside: Yes</p>
 
-    <div class="button-group">
-        <a href="?action=Accepted" class="accept">Accept</a>
-        <a href="?action=Rejected" class="reject">Reject</a>
-        <a href="?action=Message Sent" class="message">Message</a>
-    </div>
+<h3>Claims for FI-<?php echo $claims[0]['item_code']; ?></h3>
+
+<?php foreach($claims as $claim): ?>
+
+<p><strong>Claimant:</strong> <?php echo $claim['fullname']; ?></p>
+<p><strong>Email:</strong> <?php echo $claim['email']; ?></p>
+<p><strong>Submitted:</strong> <?php echo date("F d, Y", strtotime($claim['created_at'])); ?></p>
+
+<br>
+
+<p><strong>Answers:</strong></p>
+<p>- <?php echo $claim['answer1']; ?></p>
+<p>- <?php echo $claim['answer2']; ?></p>
+<p>- <?php echo $claim['answer3']; ?></p>
+
+<?php if($claim['status']=="pending"): ?>
+
+<div class="button-group">
+<a href="?accept=<?php echo $claim['id']; ?>" class="accept">Accept</a>
+<a href="?reject=<?php echo $claim['id']; ?>" class="reject">Reject</a>
+<a href="message.php?claim_id=<?php echo $claim['id']; ?>" class="message">Message</a>
 </div>
 
-<!-- CLAIM 2 -->
-<div class="claim-card">
-    <h3>Claims for O1B</h3>
-    <p>Gabriel C. Bondoc – Pending – Submitted February 20, 2026</p>
-    <p>Lauren A. David – Pending – Submitted February 22, 2026</p>
-</div>
+<?php else: ?>
+
+<p><strong>Status:</strong> <?php echo ucfirst($claim['status']); ?></p>
+
+<?php endif; ?>
+
+<hr><br>
+
+<?php endforeach; ?>
 
 </div>
+
+<?php endforeach; ?>
 
 <script>
 function toggleMenu(){
