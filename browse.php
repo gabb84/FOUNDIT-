@@ -6,13 +6,30 @@ if(!isset($_SESSION['user_id'])){
     header("Location: index.php");
     exit();
 }
-?>
 
-<?php
-$query = "SELECT * FROM items 
-    WHERE status='available' 
-    AND approval_status='approved'
-    ORDER BY created_at DESC";
+$search = "";
+$category = "";
+
+if(isset($_GET['search'])){
+    $search = mysqli_real_escape_string($conn, $_GET['search']);
+}
+
+if(isset($_GET['category'])){
+    $category = mysqli_real_escape_string($conn, $_GET['category']);
+}
+
+$query = "SELECT * FROM items WHERE status='available'";
+
+if($search != ""){
+    $query .= " AND item_name LIKE '%$search%'";
+}
+
+if($category != ""){
+    $query .= " AND category='$category'";
+}
+
+$query .= " ORDER BY created_at DESC";
+
 $result = mysqli_query($conn, $query);
 ?>
 
@@ -217,14 +234,14 @@ header{
     color:#0b3d70;
 }
 
-.view-all{
+.others{
     font-size:14px;
     color:#888;
 }
 
 .categories{
     display:grid;
-    grid-template-columns:repeat(3, 1fr); /* 3 per row */
+    grid-template-columns:repeat(3, 1fr); 
     gap:16px;
     margin-bottom:35px;
 }
@@ -232,11 +249,11 @@ header{
 .category-box{
     background:#1f4f82;
     border-radius:18px;
-    aspect-ratio: 1/1;          /* makes it a perfect square */
-    display:flex;               /* enables flexbox */
-    flex-direction:column;      /* stack image and text */
-    align-items:center;         /* center horizontally */
-    justify-content:center;     /* center vertically */
+    aspect-ratio: 1/1;          
+    display:flex;               
+    flex-direction:column;      
+    align-items:center;        
+    justify-content:center;     
     padding:10px;
     text-align:center;
 }
@@ -244,19 +261,19 @@ header{
 .category-box img{
     width:45px;
     height:45px;
-    object-fit:contain;   /* keeps image inside without stretching */
+    object-fit:contain;   
     margin-bottom:8px;
 }
 
 .category-box img{
     width:45px;
     height:45px;
-    object-fit:contain;   /* keeps image inside without stretching */
+    object-fit:contain;   
     margin-bottom:8px;
 }
 
 .category-box span{
-    color: white;        /* makes font white */
+    color: white;       
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 1px;
@@ -382,23 +399,60 @@ header{
 
     <div class="page-title">Browse</div>
 
-    <div class="search">
-        <input type="text" placeholder="Search item list">
-        <div class="search-icon">🔍</div>
-    </div>
+    <form method="GET" class="search">
+        <input type="text" name="search" placeholder="Search item list">
+        <button type="submit" class="search-icon">&#128269</button>
+    </form>
 
     <div class="category-header">
-        <h2>Categories</h2>
-        <div class="view-all">View all</div>
+    <h2>Categories</h2>
+    <a href="browse.php?category=Others" class="others">Others</a>
     </div>
 
     <div class="categories">
-        <div class="category-box"><img src="image/bottle.jpg"><span>BOTTLE</span></div>
-        <div class="category-box"><img src="image/payong.jpg"><span>UMBRELLA</span></div>
-        <div class="category-box"><img src="image/bag.jpg"><span>BAG</span></div>
-        <div class="category-box"><img src="image/id.jpg"><span>ID</span></div>
-        <div class="category-box"><img src="image/pitaka.jpg"><span>WALLET</span></div>
-        <div class="category-box"><img src="image/fan.jpg"><span>FAN</span></div>
+
+        <a href="browse.php?category=Bottle">
+        <div class="category-box">
+        <img src="image/bottle.jpg">
+        <span>BOTTLE</span>
+        </div>
+        </a>
+
+        <a href="browse.php?category=Umbrella">
+        <div class="category-box">
+        <img src="image/payong.jpg">
+        <span>UMBRELLA</span>
+        </div>
+        </a>
+
+        <a href="browse.php?category=Bag">
+        <div class="category-box">
+        <img src="image/bag.jpg">
+        <span>BAG</span>
+        </div>
+        </a>
+
+        <a href="browse.php?category=ID">
+        <div class="category-box">
+        <img src="image/id.jpg">
+        <span>ID</span>
+        </div>
+        </a>
+
+        <a href="browse.php?category=Wallet">
+        <div class="category-box">
+        <img src="image/pitaka.jpg">
+        <span>WALLET</span>
+        </div>
+        </a>
+
+        <a href="browse.php?category=Fan">
+        <div class="category-box">
+        <img src="image/fan.jpg">
+        <span>FAN</span>
+        </div>
+        </a>
+
     </div>
 
     <div class="latest-header">
@@ -411,7 +465,7 @@ header{
     <?php while($row = mysqli_fetch_assoc($result)): ?>
 
         <div class="post-card">
-            <img src="image/user.png" class="post-image">
+            <img src="uploads/<?php echo $row['image']; ?>" class="post-image">
 
             <div class="post-details">
                 <h3><?php echo $row['item_name']; ?></h3>
