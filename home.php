@@ -443,34 +443,24 @@ header{
 /* NOTIFICATION BELL */
 /* ============================= */
 
-.notif-dropdown{
-display:none;
+.bell {
+font-size: 30px;
+position: absolute; 
+right: 15px;        
+top: 50%;       
+transform: translateY(-50%);
+text-decoration: none;
+color: white;
+}
+
+.notif-badge{
 position:absolute;
-top:60px;
-right:20px;
-background:white;
-width:260px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-z-index:1000;
-overflow:hidden;
-color:#333;
-}
-
-.notif-item{
-padding:12px 15px;
-border-bottom:1px solid #eee;
-font-size:14px;
-}
-
-.notif-item:hover{
-background:#f5f5f5;
-}
-
-.notif-empty{
-padding:15px;
-text-align:center;
-color:#777;
+top:-5px;
+right:-5px;
+color:white;
+font-size:11px;
+padding:2px 6px;
+border-radius:50%;
 }
 
 /* ============================= */
@@ -519,9 +509,6 @@ color:#777;
 <header>
 
     <div class="header-right">
-
-    <a href="notifications.php" class="bell">
-    🔔
 
     <?php
     $notif_query = mysqli_query($conn,"
@@ -583,11 +570,12 @@ color:#777;
 
     <div class="profile-header">
         <div class="profile-content">
-            <a href="menu.php">
                 <img src="image/user.png" class="profile-pic">
                 <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
                 <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
-            </a>
+                <a href="#" class="bell">
+                    <span class="notif-badge">&#128276;</span>
+                </a>
         </div>
     </div>
 
