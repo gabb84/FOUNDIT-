@@ -268,6 +268,13 @@ h1{
     color:#0b3d70;
     margin-bottom:15px;
 }
+
+h3{
+    text-align:center;
+    font-weight:bold;
+    color:#0b3d70;
+    margin-bottom:20px;
+}
 </style>
 </head>
 
