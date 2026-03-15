@@ -18,7 +18,7 @@ if(isset($_GET['category'])){
     $category = mysqli_real_escape_string($conn, $_GET['category']);
 }
 
-$query = "SELECT * FROM items WHERE status='available'";
+$query = "SELECT * FROM items WHERE status='available' AND approval_status='approved'";
 
 if($search != ""){
     $query .= " AND item_name LIKE '%$search%'";

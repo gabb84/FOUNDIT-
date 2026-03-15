@@ -5,6 +5,22 @@ if(!isset($_SESSION['user_id'])){
     header("Location: index.php");
     exit();
 }
+
+include("config.php");
+
+$user_id = $_SESSION['user_id'];
+
+$query = "
+SELECT claims.*, items.item_name, items.id AS item_code
+FROM claims
+JOIN items ON claims.item_id = items.id
+WHERE claims.user_id='$user_id'
+ORDER BY claims.created_at DESC
+";
+
+$result = mysqli_query($conn,$query);
+
+
 ?>
 
 <!DOCTYPE html>
@@ -15,6 +31,7 @@ if(!isset($_SESSION['user_id'])){
 <title>My Claims</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -311,9 +328,12 @@ h1{
 
 <div class="profile-top">
     <img src="image/user.png" class="profile-main-pic">
-    <h2>Francine Panganiban</h2>
-    <p class="email">fastodomingo@student.hau.edu.ph</p>
-    <p class="stats">Active Listings: 3 &nbsp; | &nbsp; Pending Claims: 1</p>
+
+    <h2><?php echo htmlspecialchars($_SESSION['fullname']); ?></h2>
+
+    <p class="email"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
+
+    <p class="stats">My submitted claims will appear below.</p>
 </div>
 
 <div class="button-row">
@@ -323,28 +343,31 @@ h1{
 </div>
 
 <p class="subtitle">Track the status of items you have attempted to claim.</p>
-
-<!-- CLAIM 1 -->
-<div class="claim-card">
-    <p><strong>Item ID:</strong> 02D</p>
-    <p><strong>Item Name:</strong> Black Headphones</p>
-    <p><strong>Status:</strong> Pending</p>
-    <p><strong>Date Submitted:</strong> May 21, 2026</p>
-    <p>The finder is currently <span class="highlight">reviewing</span> your claim.</p>
-</div>
-
-<!-- CLAIM 2 -->
-<div class="claim-card">
-    <p><strong>Item ID:</strong> 01E</p>
-    <p><strong>Item Name:</strong> Blue Umbrella</p>
-    <p><strong>Status:</strong> Accepted</p>
-    <p><strong>Date Submitted:</strong> May 18, 2026</p>
-    <p>The finder has <span class="highlight">approved</span> your claim.</p>
-    <p>You may now coordinate through HAU email.</p>
-    <p><strong>Finder Email:</strong> finder2023@student.hau.edu.ph</p>
-</div>
-
-</div>
+<?php if (mysqli_num_rows($result) > 0): ?>
+    <?php while($row = mysqli_fetch_assoc($result)): ?>
+        <div class="claim-card">
+            <p><strong>Item ID:</strong> FI-<?php echo htmlspecialchars($row['item_code']); ?></p>
+            <p><strong>Item Name:</strong> <?php echo htmlspecialchars($row['item_name']); ?></p>
+            <p><strong>Status:</strong> 
+                <span class="highlight">
+                    <?php echo ucfirst(htmlspecialchars($row['status'])); ?>
+                </span>
+            </p>
+            <p><strong>Date Submitted:</strong> <?php echo date("F d, Y", strtotime($row['created_at'])); ?></p>
+            
+            <?php if($row['status'] == 'pending'): ?>
+                <p>The finder is currently <span class="highlight">reviewing</span> your claim.</p>
+            <?php elseif($row['status'] == 'approved'): ?>
+                <p>The finder has <span style="color: green; font-weight: bold;">approved</span> your claim!</p>
+                <p>You may now coordinate through HAU email.</p>
+            <?php elseif($row['status'] == 'rejected'): ?>
+                <p style="color: #f44336;">This claim was not approved by the finder.</p>
+            <?php endif; ?>
+        </div>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p style="text-align:center; margin-top:20px; color:#777;">You have not submitted any claims yet.</p>
+<?php endif; ?>
 
 <script>
 function toggleMenu(){

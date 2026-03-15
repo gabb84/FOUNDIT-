@@ -443,24 +443,34 @@ header{
 /* NOTIFICATION BELL */
 /* ============================= */
 
-.bell {
-font-size: 30px;
-position: absolute; 
-right: 15px;        
-top: 50%;       
-transform: translateY(-50%);
-text-decoration: none;
-color: white;
+.notif-dropdown{
+display:none;
+position:absolute;
+top:60px;
+right:20px;
+background:white;
+width:260px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+z-index:1000;
+overflow:hidden;
+color:#333;
 }
 
-.notif-badge{
-position:absolute;
-top:-5px;
-right:-5px;
-color:white;
-font-size:11px;
-padding:2px 6px;
-border-radius:50%;
+.notif-item{
+padding:12px 15px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+.notif-item:hover{
+background:#f5f5f5;
+}
+
+.notif-empty{
+padding:15px;
+text-align:center;
+color:#777;
 }
 
 /* ============================= */
@@ -510,22 +520,6 @@ border-radius:50%;
 
     <div class="header-right">
 
-    <?php
-    $notif_query = mysqli_query($conn,"
-    SELECT COUNT(*) as total
-    FROM claims
-    JOIN items ON claims.item_id = items.id
-    WHERE items.posted_by='".$_SESSION['user_id']."'
-    AND claims.status='pending'
-    ");
-
-    $notif = mysqli_fetch_assoc($notif_query);
-
-    if($notif['total'] > 0){
-    echo "<span class='notif-badge'>".$notif['total']."</span>";
-    }
-    ?>
-    </a>
 
     <div class="hamburger" onclick="toggleMenu()">
     <div></div>
@@ -570,12 +564,11 @@ border-radius:50%;
 
     <div class="profile-header">
         <div class="profile-content">
+            <a href="menu.php">
                 <img src="image/user.png" class="profile-pic">
                 <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
                 <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
-                <a href="#" class="bell">
-                    <span class="notif-badge">&#128276;</span>
-                </a>
+            </a>
         </div>
     </div>
 

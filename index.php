@@ -183,7 +183,7 @@ body {
             <span class="toggle-password" onclick="togglePassword()"></span>
         </div>
 
-        <a href="https://support.google.com/mail/?hl=en#topic=7065107" target="_blank" class="forgot">
+        <a href="https://accounts.google.com/signin/v2/usernamerecovery?authuser=0&continue=http%3A%2F%2Fsupport.google.com%2Fmail%2F%3Fhl%3Den&dsh=S-1676193518%3A1773589913814876&ec=GAlAdQ&flowEntry=AddSession&flowName=GlifWebSignIn&hl=en" target="_blank" class="forgot">
             FORGOT PASSWORD?
         </a>
 

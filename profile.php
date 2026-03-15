@@ -10,11 +10,39 @@ if(!isset($_SESSION['user_id'])){
 $user_id = $_SESSION['user_id'];
 
 $user_query = mysqli_query($conn, "SELECT fullname, email FROM users WHERE ID='$user_id'");
+
+$items_query = mysqli_query($conn,"
+SELECT items.*, 
+(SELECT COUNT(*) FROM claims WHERE claims.item_id = items.id) AS total_claims
+FROM items
+WHERE posted_by='$user_id'
+ORDER BY created_at DESC
+");
+
 $user = mysqli_fetch_assoc($user_query);
 
 $activeListings = 0;
 $pendingClaims = 0;
+
+$activeListings_query = mysqli_query($conn,"
+SELECT COUNT(*) as total 
+FROM items 
+WHERE posted_by='$user_id' AND status='available'
+");
+
+$activeListings = mysqli_fetch_assoc($activeListings_query)['total'];
+
+$pendingClaims_query = mysqli_query($conn,"
+SELECT COUNT(*) as total
+FROM claims
+JOIN items ON claims.item_id = items.id
+
+WHERE items.posted_by='$user_id' AND claims.status='pending'
+");
+
+$pendingClaims = mysqli_fetch_assoc($pendingClaims_query)['total'];
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -360,30 +388,42 @@ Pending Claims: <?php echo $pendingClaims; ?>
 
 <h3>Manage your found items and review claims.</h3>
 
-<div class="card">
-    <p><strong>ID:</strong> 01C</p>
-    <p><strong>Item Name:</strong> Pink Wallet</p>
-    <p><strong>Status:</strong> Pending</p>
-    <p><strong>Claims:</strong> 3</p>
+<?php if(mysqli_num_rows($items_query) > 0): ?>
 
-    <div class="card-buttons">
-        <a href="viewclaims.php" class="view-btn">View Claims</a>
-        <a href="reopenitem.php" class="reopen-btn">Reopen Item</a>
-    </div>
-</div>
+<?php while($item = mysqli_fetch_assoc($items_query)): ?>
 
 <div class="card">
-    <p><strong>ID:</strong> 01A</p>
-    <p><strong>Item Name:</strong> Pink Aquaflask Water Bottle</p>
-    <p><strong>Status:</strong> Available</p>
-    <p><strong>Claims:</strong> 0</p>
 
-    <div class="card-buttons">
-        <a href="viewclaims.php" class="view-btn">View Claims</a>
-    </div>
+<p><strong>ID:</strong> FI-<?php echo $item['id']; ?></p>
+<p><strong>Item Name:</strong> <?php echo htmlspecialchars($item['item_name']); ?></p>
+<p><strong>Status:</strong> <?php echo ucfirst($item['status']); ?></p>
+<p><strong>Claims:</strong> <?php echo $item['total_claims']; ?></p>
+
+<div class="card-buttons">
+
+<a href="viewclaims.php?item_id=<?php echo $item['id']; ?>" class="view-btn">
+View Claims
+</a>
+
+<?php if($item['status']=="claimed"): ?>
+
+<?php endif; ?>
+
 </div>
 
 </div>
+
+<?php endwhile; ?>
+
+<?php else: ?>
+
+<p style="text-align:center;margin-top:20px;">
+You have not posted any items yet.
+</p>
+
+<?php endif; ?>
+
+
 
 <script>
 function toggleMenu(){
