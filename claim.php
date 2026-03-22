@@ -1,9 +1,9 @@
 <?php
 session_start();
-include("config.php");
+include("includes/config.php");
 
 if(!isset($_SESSION['user_id'])){
-    header("Location: index.php");
+    header("Location: landingpage.php");
     exit();
 }
 
@@ -15,7 +15,6 @@ if(!isset($_GET['item_id'])){
 $item_id = intval($_GET['item_id']);
 $user_id = $_SESSION['user_id'];
 
-/* GET ITEM DETAILS */
 $item_query = mysqli_query($conn, "SELECT * FROM items WHERE id='$item_id'");
 $item = mysqli_fetch_assoc($item_query);
 
@@ -24,19 +23,35 @@ if(!$item){
     exit();
 }
 
-/* HANDLE CLAIM SUBMIT */
+$questions = [];
+
+$q_result = mysqli_query($conn, "
+    SELECT question 
+    FROM verification_questions 
+    WHERE item_id = '$item_id'
+");
+
+while($row = mysqli_fetch_assoc($q_result)){
+    $questions[] = $row['question'];
+}
+
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    $answer1 = mysqli_real_escape_string($conn, $_POST['answer1']);
-    $answer2 = mysqli_real_escape_string($conn, $_POST['answer2']);
-    $answer3 = mysqli_real_escape_string($conn, $_POST['answer3']);
+    // Collect answers — trim only, let the prepared statement handle escaping
+    $raw_answers = isset($_POST['answers']) ? $_POST['answers'] : [];
+    $answers = [];
+    foreach($raw_answers as $a){
+        $answers[] = trim($a);
+    }
+    $answers_json = json_encode($answers);   // plain JSON, no manual escaping
+    $comment = trim($_POST['comment'] ?? '');
 
-    $insert = "INSERT INTO claims 
-               (item_id, user_id, answer1, answer2, answer3, status)
-               VALUES
-               ('$item_id', '$user_id', '$answer1', '$answer2', '$answer3', 'pending')";
+    $stmt = mysqli_prepare($conn, "INSERT INTO claims
+    (item_id, user_id, answers, comment, status)
+    VALUES (?, ?, ?, ?, 'pending')");
 
-    mysqli_query($conn, $insert);
+    mysqli_stmt_bind_param($stmt, "iiss", $item_id, $user_id, $answers_json, $comment);
+    mysqli_stmt_execute($stmt);
 
     header("Location: approved.php");
     exit();
@@ -49,234 +64,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Claim Item</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, sans-serif;
-}
-
-body{
-    background:#f2f2f2;
-}
-
-/* HEADER */
-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px;
-}
-
-.logo{
-    width:150px;
-}
-
-/* HAMBURGER */
-.hamburger{
-    width:28px;
-    cursor:pointer;
-}
-
-.hamburger div{
-    height:4px;
-    background:#0b3d70;
-    margin:5px 0;
-    border-radius:2px;
-}
-
-/* SIDEBAR */
-.sidebar{
-    position:fixed;
-    right:-100%;
-    top:0;
-    width:85%;
-    height:100%;
-    background:#f2f2f2;
-    transition:0.3s ease;
-    z-index:1000;
-    overflow-y:auto;
-}
-
-.sidebar.active{
-    right:0;
-}
-
-/* OVERLAY */
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    opacity:0;
-    visibility:hidden;
-    transition:0.3s;
-    z-index:900;
-}
-
-.overlay.active{
-    opacity:1;
-    visibility:visible;
-}
-
-/* PROFILE HEADER */
-.profile-header{
-    background:url("image/menubg.png") no-repeat center center;
-    background-size:cover;
-    padding:25px 20px;
-    color:white;
-    position:relative;
-}
-
-.profile-header::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-}
-
-.profile-content{
-    position:relative;
-    z-index:2;
-}
-
-.profile-content a{
-    text-decoration:none;
-    color:white;
-}
-
-.profile-content a:visited{
-    color:white;
-}
-
-.profile-pic{
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    object-fit:cover;
-    margin-bottom:10px;
-}
-
-.profile-name{
-    font-weight:bold;
-    font-size:16px;
-}
-
-.profile-email{
-    font-size:13px;
-}
-
-/* MENU ITEMS */
-.menu-item{
-    display:flex;
-    align-items:center;
-    padding:18px 20px;
-    font-size:16px;
-    color:#555;
-    text-decoration:none;
-    border-bottom:1px solid #ddd;
-}
-
-.menu-item img{
-    width:25px;
-    margin-right:15px;
-}
-
-.menu-item:hover{
-    background:#e6e6e6;
-}
-
-/* MAIN CONTAINER */
-.container{
-    padding:20px;
-}
-
-h1{
-    text-align:center;
-    color:#0b3d70;
-    margin-bottom:20px;
-}
-
-/* SEARCH BAR */
-.search-box{
-    background:white;
-    border-radius:30px;
-    padding:12px 20px;
-    margin-bottom:20px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-.search-box input{
-    width:100%;
-    border:none;
-    outline:none;
-    font-size:14px;
-}
-
-/* ITEM SUMMARY */
-.summary{
-    background:white;
-    border-radius:12px;
-    padding:15px;
-    margin-bottom:20px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-.summary h3{
-    color:#0b3d70;
-    margin-bottom:10px;
-}
-
-/* INSTRUCTION BOX */
-.instructions{
-    text-align:center;
-    background:#e9eef3;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:25px;
-    font-size:14px;
-    line-height:1.6;
-}
-
-.instructions strong{
-    color:#0b3d70;
-}
-
-/* QUESTIONS */
-.question{
-    margin-bottom:20px;
-}
-
-.question label{
-    font-weight:bold;
-    color:#0b3d70;
-    display:block;
-    margin-bottom:5px;
-}
-
-textarea{
-    width:100%;
-    padding:12px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    resize:none;
-    font-size:14px;
-}
-
-/* SUBMIT BUTTON */
-.submit-btn{
-    width:100%;
-    padding:14px;
-    background:#2d5fdb;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    cursor:pointer;
-    margin-top:10px;
-}
-</style>
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/claim.css">
 </head>
 
 <body>
@@ -296,7 +85,7 @@ textarea{
 
     <div class="profile-header">
         <div class="profile-content">
-            <a href="menu.php">
+            <a href="index.php">
                 <img src="image/user.png" class="profile-pic">
                 <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
                 <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
@@ -304,40 +93,19 @@ textarea{
         </div>
     </div>
 
-    <a href="home.php" class="menu-item">
-        <img src="image/home.png"> Home
-    </a>
-
-    <a href="browse.php" class="menu-item">
-        <img src="image/lost.png"> Browse
-    </a>
-
-    <a href="list.php" class="menu-item">
-        <img src="image/list.png"> List
-    </a>
-
-    <a href="claim.php" class="menu-item">
-        <img src="image/found.png"> Claim
-    </a>
-
-    <a href="profile.php" class="menu-item">
-        <img src="image/profile.png"> Profile
-    </a>
-
-    <a href="contactus.php" class="menu-item">
-        <img src="image/contact.png"> Contact Us
-    </a>
+    <a href="home.php" class="menu-item"><img src="image/home.png"> Home</a>
+    <a href="browse.php" class="menu-item"><img src="image/lost.png"> Browse</a>
+    <a href="list.php" class="menu-item"><img src="image/list.png"> List</a>
+    <a href="claim.php" class="menu-item"><img src="image/found.png"> Claim</a>
+    <a href="profile.php" class="menu-item"><img src="image/profile.png"> Profile</a>
+    <a href="contactus.php" class="menu-item"><img src="image/contact.png"> Contact Us</a>
 
     <?php if(isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
-        <a href="admin/dashboard.php" class="menu-item">
-        <img src="image/admin.png"> Admin Panel
-        </a>
+        <a href="admin/dashboard.php" class="menu-item"><img src="image/admin.png"> Admin Panel</a>
     <?php endif; ?>
 
-    <a href="logout.php" class="menu-item">
-        <img src="image/out.png"> Log Out
-    </a>
-    </div>
+    <a href="logout.php" class="menu-item"><img src="image/out.png"> Log Out</a>
+</div>
 
 <div class="container">
 
@@ -349,9 +117,9 @@ textarea{
 
 <div class="summary">
     <h3>Item Summary</h3>
-    <p><strong>Item Name:</strong> <?php echo $item['item_name']; ?></p>
-    <p><strong>Location Found:</strong> <?php echo $item['location_found']; ?></p>
-    <p><strong>Date Found:</strong> <?php echo $item['date_found']; ?></p>
+    <p><strong>Item Name:</strong> <?php echo htmlspecialchars($item['item_name']); ?></p>
+    <p><strong>Location Found:</strong> <?php echo htmlspecialchars($item['location_found']); ?></p>
+    <p><strong>Date Found:</strong> <?php echo htmlspecialchars($item['date_found']); ?></p>
 </div>
 
 <div class="instructions">
@@ -362,19 +130,20 @@ textarea{
 
 <form method="POST">
 
-<div class="question">
-    <label>Question 1: Describe the item's exact appearance (color, size, markings).</label>
-    <textarea name="answer1" rows="3" required></textarea>
-</div>
+<?php if(!empty($questions)): ?>
+    <?php foreach($questions as $landingpage => $question): ?>
+    <div class="question">
+        <label>Question <?php echo $landingpage + 1; ?>: <?php echo htmlspecialchars($question); ?></label>
+        <textarea name="answers[]" rows="3" required></textarea>
+    </div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p style="color:#888; text-align:center; margin-bottom:20px;">No verification questions were set for this item.</p>
+<?php endif; ?>
 
-<div class="question">
-    <label>Question 2: When and where did you last see this item?</label>
-    <textarea name="answer2" rows="3" required></textarea>
-</div>
-
-<div class="question">
-    <label>Question 3: Mention any unique identifiers (brand, scratches, stickers, contents, etc.).</label>
-    <textarea name="answer3" rows="3" required></textarea>
+<div class="comment-section">
+    <label class="comment-label">Additional Comment</label>
+    <textarea name="comment" class="comment-textarea" placeholder="Optional: Add extra details or anything else you'd like the finder to know..."></textarea>
 </div>
 
 <button type="submit" class="submit-btn">Submit Claim</button>
@@ -383,12 +152,7 @@ textarea{
 
 </div>
 
-<script>
-function toggleMenu(){
-    document.getElementById("sidebar").classList.toggle("active");
-    document.getElementById("overlay").classList.toggle("active");
-}
-</script>
+<script src="js/global.js"></script>
 
 </body>
 </html>

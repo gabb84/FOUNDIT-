@@ -1,220 +1,75 @@
 <?php
 session_start();
-include("config.php");
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['password'];
-
-    $query = "SELECT * FROM users WHERE email='$email'";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) == 1) {
-
-        $user = mysqli_fetch_assoc($result);
-
-        if (password_verify($password, $user['password'])) {
-
-        $_SESSION['user_id'] = $user['ID'];
-        $_SESSION['fullname'] = $user['fullname'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-
-            header("Location: home.php");
-            exit();
-        }
-        else {
-            echo "<script>alert('Invalid Email or Password');</script>";
-        }
-
-    } else {
-        echo "<script>alert('Invalid Email or Password');</script>";
-    }
-}
+$loggedIn = isset($_SESSION['user_id']);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foundit - Login</title>
-
-<style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    background: url("image/bg.png") no-repeat center center;
-    background-size: cover;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-}
-
-/* Main container */
-.container {
-    width: 100%;
-    max-width: 430px;
-    padding: 40px 25px;
-    text-align: center;
-}
-
-/* Logo */
-.logo {
-    width: 300px;
-    margin: 80px auto 40px;
-}
-
-/* Inputs */
-.login-form input {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: none;
-    font-size: 15px;
-}
-
-/* Password */
-.password-wrapper {
-    position: relative;
-}
-
-.toggle-password {
-    position: absolute;
-    right: 15px;
-    top: 14px;
-    cursor: pointer;
-}
-
-/* Forgot */
-.forgot {
-    display: block;
-    font-size: 12px;
-    text-align: right;
-    margin-bottom: 20px;
-    color: #1f4f82;
-    text-decoration: none;
-}
-
-/* Login Button */
-.login-btn {
-    width: 100%;
-    padding: 14px;
-    background-color: #2d5f94;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-/* Social */
-.social {
-    display: flex;
-    gap: 10px;
-    margin-top: 25px;
-}
-
-.social-btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-    text-decoration: none;
-    font-weight: bold;
-    background: white;
-    color: black;
-}
-
-/* Divider */
-.signup {
-    display: flex;
-    align-items: center;
-    margin-top: 50px;
-}
-
-.line {
-    flex: 1;
-    height: 1px;
-    background: #1f4f82;
-}
-
-.signup p {
-    margin: 0 10px;
-    font-size: 12px;
-    color: #1f4f82;
-}
-
-/* Create */
-.create {
-    margin-top: 10px;
-    font-size: 13px;
-}
-
-.create a {
-    font-weight: bold;
-    color: black;
-    text-decoration: underline;
-}
-</style>
-
+<title>Index Page</title>
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
 
-<div class="container">
+<div class="overlay"></div>
 
-    <img src="image/logo.png" alt="Foundit Logo" class="logo">
+<header>
+    <img src="image/menulogo.png" class="logo">
+</header>
 
-    <form method="POST" class="login-form">
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
-        <input type="email" name="email" placeholder="HAU Email" required>
+<div class="sidebar" id="sidebar">
 
-        <div class="password-wrapper">
-            <input type="password" name="password" id="password" placeholder="Enter your password" required>
-            <span class="toggle-password" onclick="togglePassword()"></span>
+    <div class="profile-header">
+        <div class="profile-content">
+            <div>
+                <img src="image/user.png" class="profile-pic">
+                <div class="profile-name">
+                    <?php echo isset($_SESSION['fullname']) ? $_SESSION['fullname'] : ''; ?>
+                </div>
+                <div class="profile-email">
+                    <?php echo isset($_SESSION['email']) ? $_SESSION['email'] : ''; ?>
+                </div>
+            </div>
         </div>
-
-        <a href="https://accounts.google.com/signin/v2/usernamerecovery?authuser=0&continue=http%3A%2F%2Fsupport.google.com%2Fmail%2F%3Fhl%3Den&dsh=S-1676193518%3A1773589913814876&ec=GAlAdQ&flowEntry=AddSession&flowName=GlifWebSignIn&hl=en" target="_blank" class="forgot">
-            FORGOT PASSWORD?
-        </a>
-
-        <button type="submit" class="login-btn">LOG IN</button>
-
-
-    </form>
-
-    <div class="social">
-        <a href="https://myaccount.google.com/" target="_blank" class="social-btn">Google</a>
-        <a href="https://account.apple.com/" target="_blank" class="social-btn">Apple</a>
     </div>
 
-    <div class="signup">
-        <div class="line"></div>
-        <p>DON'T HAVE AN ACCOUNT?</p>
-        <div class="line"></div>
-    </div>
+    <a href="home.php" class="menu-item"><img src="image/home.png"> Home</a>
+    <a href="browse.php" class="menu-item"><img src="image/lost.png"> Browse</a>
+    <a href="list.php" class="menu-item"><img src="image/list.png"> List</a>
+    <a href="claim.php" class="menu-item"><img src="image/found.png"> Claim</a>
+    <a href="profile.php" class="menu-item"><img src="image/profile.png"> Profile</a>
+    <a href="contactus.php" class="menu-item"><img src="image/contact.png"> Contact Us</a>
 
-    <p class="create">
-        CREATE ONE <a href="signup.php">HERE!</a>
-    </p>
+    <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+        <a href="admin/dashboard.php" class="menu-item"><img src="image/admin.png"> Admin Panel</a>
+    <?php endif; ?>
+
+    <a href="logout.php" class="menu-item"><img src="image/out.png"> Log Out</a>
 
 </div>
 
-<script>
-function togglePassword() {
-    const password = document.getElementById("password");
-    password.type = password.type === "password" ? "text" : "password";
-}
-</script>
+<div class="content">
+    <div>
+        <img src="image/menufoundit.png" class="hero-image" alt="Lost Something Banner">
+        <p>Post lost items, browse found belongings, and get back what's yours—fast and easy!</p>
+
+        <p class="cta-text">Log in or Sign up to get started</p>
+
+        <div class="cta-buttons">
+            <a href="landingpage.php" class="btn login-btn">LOG IN</a>
+            <a href="signup.php" class="btn signup-btn">SIGN UP</a>
+        </div>
+    </div>
+</div>
+
+<script src="js/landingpage.js"></script>
 
 </body>
 </html>

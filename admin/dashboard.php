@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("../config.php");
+include("../includes/config.php");
 
 /* ADMIN PROTECTION */
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin'){
@@ -20,6 +20,10 @@ $totalItems = mysqli_fetch_assoc($itemQuery)['total'];
 // available items
 $availableQuery = mysqli_query($conn,"SELECT COUNT(*) AS total FROM items WHERE status='available'");
 $availableItems = mysqli_fetch_assoc($availableQuery)['total'];
+
+// unread messages
+$unreadQuery = mysqli_query($conn,"SELECT COUNT(*) AS total FROM contacts WHERE is_read=0");
+$unreadMessages = mysqli_fetch_assoc($unreadQuery)['total'];
 ?>
 
 <!DOCTYPE html>
@@ -173,6 +177,21 @@ $availableItems = mysqli_fetch_assoc($availableQuery)['total'];
             margin-top: 0.5rem;
         }
 
+        /* MESSAGES BADGE */
+        .messages-btn {
+            position: relative;
+        }
+
+        .msg-badge {
+            background: #f59e0b;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
         /* RESPONSIVE QUERIES */
         @media (min-width: 768px) {
             .stats {
@@ -224,6 +243,12 @@ $availableItems = mysqli_fetch_assoc($availableQuery)['total'];
         <nav class="actions">
             <a href="manage_items.php" class="action-btn">Manage Items</a>
             <a href="manage_claims.php" class="action-btn">Manage Claims</a>
+            <a href="manage_messages.php" class="action-btn messages-btn">
+                Messages
+                <?php if($unreadMessages > 0): ?>
+                    <span class="msg-badge"><?php echo $unreadMessages; ?></span>
+                <?php endif; ?>
+            </a>
             <a href="../home.php" class="action-btn secondary">Back to Site</a>
         </nav>
     </main>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("../config.php");
+include("../includes/config.php");
 
 /* ADMIN PROTECTION */
 if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin'){

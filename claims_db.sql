@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 15, 2026 at 04:51 PM
+-- Generation Time: Mar 22, 2026 at 02:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -31,27 +31,28 @@ CREATE TABLE `claims` (
   `id` int(11) NOT NULL,
   `item_id` int(11) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `answer1` text DEFAULT NULL,
-  `answer2` text DEFAULT NULL,
-  `answer3` text DEFAULT NULL,
-  `status` varchar(50) DEFAULT 'pending',
+  `answers` longtext DEFAULT NULL,
+  `comment` text DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `claims`
+-- Table structure for table `contacts`
 --
 
-INSERT INTO `claims` (`id`, `item_id`, `user_id`, `answer1`, `answer2`, `answer3`, `status`, `created_at`) VALUES
-(1, 2, 3, 'Orange', 'Fountain', 'Basag', 'rejected', '2026-03-14 16:00:54'),
-(2, 4, 3, 'White', 'GGN Canteen', 'Has scratches', 'approved', '2026-03-14 16:39:41'),
-(3, 4, 3, 'white', 'scaa', 'csacsa', 'approved', '2026-03-14 16:52:05'),
-(4, 7, 3, 'Black', 'GGN Canteen', 'Gray Case', 'approved', '2026-03-14 17:22:16'),
-(5, 9, 5, 'Black', 'Roof deck', 'hole', 'approved', '2026-03-15 14:56:41'),
-(6, 10, 3, 'csaca', 'csacas', 'csacsa', 'approved', '2026-03-15 15:07:37'),
-(7, 11, 3, 'ascacsaca', 'gsavsac', 'csacagsa', 'approved', '2026-03-15 15:24:51'),
-(8, 12, 4, 'scacacsa', 'csagasgaga', 'scacsacacsaf', 'approved', '2026-03-15 15:31:02'),
-(9, 13, 4, 'scsacfga', 'csacasc', 'sgaaca', 'rejected', '2026-03-15 15:34:47');
+CREATE TABLE `contacts` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `subject` varchar(100) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -62,26 +63,18 @@ INSERT INTO `claims` (`id`, `item_id`, `user_id`, `answer1`, `answer2`, `answer3
 CREATE TABLE `items` (
   `id` int(11) NOT NULL,
   `item_name` varchar(100) NOT NULL,
-  `category` varchar(100) NOT NULL,
-  `description` text NOT NULL,
-  `location_found` varchar(100) NOT NULL,
-  `date_found` date NOT NULL,
-  `image` varchar(255) NOT NULL,
-  `posted_by` int(11) NOT NULL,
-  `answer1` varchar(100) NOT NULL,
-  `answer2` varchar(100) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `status` varchar(50) NOT NULL DEFAULT 'available',
-  `approval_status` varchar(20) DEFAULT 'pending'
+  `category` varchar(50) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `location_found` varchar(100) DEFAULT NULL,
+  `date_found` date DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `posted_by` int(11) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'available',
+  `approval_status` varchar(20) DEFAULT 'pending',
+  `is_edited` tinyint(1) DEFAULT 0,
+  `edited_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `items`
---
-
-INSERT INTO `items` (`id`, `item_name`, `category`, `description`, `location_found`, `date_found`, `image`, `posted_by`, `answer1`, `answer2`, `created_at`, `status`, `approval_status`) VALUES
-(12, 'Macbook Air', 'Laptop', 'May gasgas', 'GGN Canteen', '2023-08-04', '1773588626_macbook.png', 3, '', '', '2026-03-15 15:32:04', 'claimed', 'approved'),
-(13, 'iPad Air', 'Cellphone', 'scacac aca', 'GGN Canteen', '2024-08-23', '1773588858_ipad.png', 3, '', '', '2026-03-15 15:44:55', 'claimed', 'approved');
 
 -- --------------------------------------------------------
 
@@ -94,24 +87,28 @@ CREATE TABLE `users` (
   `fullname` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `role` enum('student','admin') DEFAULT 'student'
+  `role` varchar(20) DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`ID`, `fullname`, `email`, `password`, `created_at`, `role`) VALUES
-(1, 'Francine Sto. Domingo', 'fastodomingo@student.hau.edu.ph', '$2y$10$FwiAhjBT.H11pPeVwrwm4ucjm.pwDATD8zpXSoQbs.18yGXFE/RT2', '2026-03-01 16:36:01', 'student'),
-(2, 'Gabriel Bondoc', 'gcbondoc@student.hau.edu.ph', '$2y$10$uWmMF/R2A3d8XNIzcL3gOeUT8h6QWcwJq0lvZdvJcXCIQytFk4u86', '2026-03-01 16:37:14', 'student'),
-(3, 'Fendi Cruz', 'fjcruz@student.hau.edu.ph', '$2y$10$qrC.PWyM7ziH28.qnNI6HOsD8WngOgOT8p/hVbgfok3KQGkBm1v0a', '2026-03-14 14:50:03', 'student'),
-(4, 'Lauren  Garin', 'lgarin@student.hau.edu.ph', '$2y$10$f7ITnOF9WCJmO16c3Z7XGuMnh0sKtdejNVM.IXuuTUCpE5yP5TNKS', '2026-03-14 15:03:18', 'student'),
-(5, 'Gab Bondoc', 'gjbondoc@student.hau.edu.ph', '$2y$10$E7vwUmhCBcAKamN9sESGUexZ7pOeQnJncjIuhEA6A.1Z/6c6lIgwm', '2026-03-14 15:15:21', 'admin'),
-(6, 'Butiki Baboy', 'butiki@gmail.com', '$2y$10$zqC0wkC2YwkvTOjMt8XHX.dvz7kG0zE.R72O60KBZ4mzWKAmhXEbK', '2026-03-14 15:32:36', 'student'),
-(7, 'Marie David', 'mdavid@student.hau.edu.ph', '$2y$10$IMBJFqHDwy2CN/DRf8h.RO0BGwTp00/o97pk2P4HYvNoYeikyE4..', '2026-03-14 15:55:37', 'student'),
-(8, 'Kits David', 'kdavid@student.hau.edu.ph', '$2y$10$3uDy/MM5PlzEMn9fPvaYNul8TtmZlwcoqrXpFBGull.tX5qxicIRu', '2026-03-14 17:03:31', 'student'),
-(9, 'Pedro Batumbakal', 'pbatumbakal@student.hau.edu.ph', '$2y$10$pVYwXUq5AFJf0tkg7Nl9cOMjBFJJufbZ/8fWEGwUXW9RSkpBKNq4C', '2026-03-14 17:24:41', 'student');
+INSERT INTO `users` (`ID`, `fullname`, `email`, `password`, `role`) VALUES
+(1, 'test user', 'testuser@student.hau.edu.ph', '$2y$10$4A6XTlAZx4nY4mKOy9AfoObte4XZAuK6jqzPA8q8B6ZBiX.IHcnVy', 'user'),
+(2, 'Admin User', 'admin@hau.edu.ph', '$2y$10$7nqthD7VOdKwKx7d4.unpuAeRKgDHOza.OEWpnl9dbC5s63Qn9ETi', 'admin');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `verification_questions`
+--
+
+CREATE TABLE `verification_questions` (
+  `id` int(11) NOT NULL,
+  `item_id` int(11) DEFAULT NULL,
+  `question` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -121,19 +118,37 @@ INSERT INTO `users` (`ID`, `fullname`, `email`, `password`, `created_at`, `role`
 -- Indexes for table `claims`
 --
 ALTER TABLE `claims`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `item_id` (`item_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `contacts`
+--
+ALTER TABLE `contacts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `items`
 --
 ALTER TABLE `items`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `posted_by` (`posted_by`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `verification_questions`
+--
+ALTER TABLE `verification_questions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `item_id` (`item_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -143,19 +158,60 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `claims`
 --
 ALTER TABLE `claims`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `contacts`
+--
+ALTER TABLE `contacts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `verification_questions`
+--
+ALTER TABLE `verification_questions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `claims`
+--
+ALTER TABLE `claims`
+  ADD CONSTRAINT `claims_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `claims_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `contacts`
+--
+ALTER TABLE `contacts`
+  ADD CONSTRAINT `contacts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `items`
+--
+ALTER TABLE `items`
+  ADD CONSTRAINT `items_ibfk_1` FOREIGN KEY (`posted_by`) REFERENCES `users` (`ID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `verification_questions`
+--
+ALTER TABLE `verification_questions`
+  ADD CONSTRAINT `verification_questions_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

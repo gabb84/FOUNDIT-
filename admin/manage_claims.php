@@ -1,9 +1,19 @@
 <?php
 session_start();
-include("../config.php");
+include("../includes/config.php");
 
 /* ADMIN PROTECTION */
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin'){
+if(!isset($_SESSION['user_id'])){
+    header("Location: ../home.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+$result = mysqli_query($conn, "SELECT role FROM users WHERE ID = '$user_id'");
+$user = mysqli_fetch_assoc($result);
+
+if($user['role'] !== 'admin'){
     header("Location: ../home.php");
     exit();
 }
@@ -38,7 +48,7 @@ if(isset($_GET['reject'])){
 $query = mysqli_query($conn,"
     SELECT claims.*, users.fullname, items.item_name
     FROM claims
-    LEFT JOIN users ON claims.user_id = users.ID
+    LEFT JOIN users ON claims.user_ID = users.ID
     LEFT JOIN items ON claims.item_id = items.id
     ORDER BY claims.created_at DESC
 ");
@@ -247,15 +257,19 @@ $query = mysqli_query($conn,"
                         <?php echo htmlspecialchars($claim['fullname']); ?>
                     </div>
 
-                    <div class="claim-info">
-                        <span class="info-label">Verification Answer 1</span>
-                        <span class="info-value"><?php echo htmlspecialchars($claim['answer1']); ?></span>
-                    </div>
-
-                    <div class="claim-info">
-                        <span class="info-label">Verification Answer 2</span>
-                        <span class="info-value"><?php echo htmlspecialchars($claim['answer2']); ?></span>
-                    </div>
+                    <?php
+                    $claim_answers = json_decode($claim['answers'] ?? '[]', true);
+                    if(!empty($claim_answers)){
+                        foreach($claim_answers as $ai => $ans){
+                            echo '<div class="claim-info">';
+                            echo '<span class="info-label">Answer ' . ($ai+1) . '</span>';
+                            echo '<span class="info-value">' . htmlspecialchars($ans) . '</span>';
+                            echo '</div>';
+                        }
+                    } else {
+                        echo '<div class="claim-info"><span class="info-value" style="color:#999;">No answers recorded.</span></div>';
+                    }
+                    ?>
 
                     <div>
                         <span class="status-text">Status: <?php echo $claim['status']; ?></span>

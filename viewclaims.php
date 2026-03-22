@@ -1,9 +1,9 @@
 <?php
 session_start();
-include("config.php");
+include("includes/config.php");
 
 if(!isset($_SESSION['user_id'])){
-    header("Location: index.php");
+    header("Location: landingpage.php");
     exit();
 }
 
@@ -55,14 +55,27 @@ WHERE items.posted_by='$user_id'
 ORDER BY claims.created_at DESC
 ";
 
-$result = mysqli_query($conn,$query);
+$result = mysqli_query($conn, $query);
 
-/* GROUP CLAIMS BY ITEM */
 $claims_by_item = [];
-
 while($row = mysqli_fetch_assoc($result)){
     $claims_by_item[$row['item_id']][] = $row;
 }
+
+$activeListings_query = mysqli_query($conn,"
+SELECT COUNT(*) as total
+FROM items
+WHERE posted_by='$user_id' AND status='available'
+");
+$activeListings = mysqli_fetch_assoc($activeListings_query)['total'];
+
+$pendingClaims_query = mysqli_query($conn,"
+SELECT COUNT(*) as total
+FROM claims
+JOIN items ON claims.item_id = items.id
+WHERE items.posted_by='$user_id' AND claims.status='pending'
+");
+$pendingClaims = mysqli_fetch_assoc($pendingClaims_query)['total'];
 ?>
 
 <!DOCTYPE html>
@@ -71,263 +84,8 @@ while($row = mysqli_fetch_assoc($result)){
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>View Claims</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, sans-serif;
-}
-
-body{
-    background:#f2f2f2;
-}
-
-/* HEADER */
-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px;
-}
-
-.logo{
-    width:150px;
-}
-
-/* HAMBURGER */
-.hamburger{
-    width:28px;
-    cursor:pointer;
-}
-
-.hamburger div{
-    height:4px;
-    background:#0b3d70;
-    margin:5px 0;
-    border-radius:2px;
-}
-
-/* SIDEBAR */
-.sidebar{
-    position:fixed;
-    right:-100%;
-    top:0;
-    width:85%;
-    height:100%;
-    background:#f2f2f2;
-    transition:0.3s ease;
-    z-index:1000;
-    overflow-y:auto;
-}
-
-.sidebar.active{
-    right:0;
-}
-
-/* OVERLAY */
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    opacity:0;
-    visibility:hidden;
-    transition:0.3s;
-    z-index:900;
-}
-
-.overlay.active{
-    opacity:1;
-    visibility:visible;
-}
-
-/* PROFILE HEADER (SIDEBAR) */
-.profile-header{
-    background:url("image/menubg.png") no-repeat center center;
-    background-size:cover;
-    padding:25px 20px;
-    color:white;
-    position:relative;
-}
-
-.profile-header::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-}
-
-.profile-content{
-    position:relative;
-    z-index:2;
-}
-
-.profile-pic{
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    object-fit:cover;
-    margin-bottom:10px;
-}
-
-.profile-name{
-    font-weight:bold;
-    font-size:16px;
-}
-
-.profile-email{
-    font-size:13px;
-}
-
-.profile-content a{
-    text-decoration:none;
-    color:white;
-}
-
-.profile-content a:visited{
-    color:white;
-}
-
-/* MENU ITEMS */
-.menu-item{
-    display:flex;
-    align-items:center;
-    padding:18px 20px;
-    font-size:16px;
-    color:#555;
-    text-decoration:none;
-    border-bottom:1px solid #ddd;
-}
-
-.menu-item img{
-    width:25px;
-    margin-right:15px;
-}
-
-.menu-item:hover{
-    background:#e6e6e6;
-}
-
-/* MAIN CONTAINER */
-.container{
-    padding:20px;
-}
-
-/* PAGE TITLE */
-h1{
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-    color:#0b3d70;
-    margin-top:10px;
-    margin-bottom:15px;
-}
-
-/* PROFILE TOP */
-.profile-top{
-    text-align:center;
-    margin-top:20px;
-    margin-bottom:15px;
-}
-
-.profile-main-pic{
-    width:110px;
-    height:110px;
-    border-radius:50%;
-    object-fit:cover;
-    margin-bottom:10px;
-}
-
-.profile-top h2{
-    color:#0b3d70;
-    margin-bottom:5px;
-}
-
-.email{
-    font-size:14px;
-    color:#555;
-}
-
-/* BUTTON ROW */
-.button-row{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin:20px 0;
-}
-
-.button-row a{
-    padding:10px 15px;
-    border-radius:6px;
-    text-decoration:none;
-    font-weight:bold;
-    font-size:13px;
-    color:white;
-}
-
-.primary-btn{
-    background:#0b3d70;
-}
-
-.gray-btn{
-    background:#777;
-}
-
-/* DESCRIPTION/SUBTITLE */
-.subtitle{
-    text-align:center;
-    font-weight:bold;
-    color:#0b3d70;
-    margin-bottom:20px;
-}
-
-/* CLAIM CARD */
-.claim-card{
-    background:white;
-    border:2px solid #0b3d70;
-    border-radius:15px;
-    padding:15px;
-    margin-bottom:20px;
-}
-
-.claim-card h3{
-    color:#0b3d70;
-    margin-bottom:10px;
-}
-
-.claim-card p{
-    margin-bottom:6px;
-}
-
-/* BUTTON GROUP */
-.button-group{
-    margin-top:15px;
-    display:flex;
-    gap:10px;
-}
-
-.button-group a{
-    flex:1;
-    text-align:center;
-    padding:10px 0;
-    border-radius:6px;
-    font-size:14px;
-    text-decoration:none;
-    color:white;
-    font-weight:bold;
-}
-
-.accept{ background:#4CAF50; }
-.reject{ background:#f44336; }
-.message{ background:#e0a23b; }
-
-.success{
-    text-align:center;
-    color:green;
-    margin-bottom:15px;
-}
-</style>
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/viewclaims.css">
 </head>
 
 <body>
@@ -346,10 +104,10 @@ h1{
 <div class="sidebar" id="sidebar">
     <div class="profile-header">
         <div class="profile-content">
-            <a href="menu.php">
-            <img src="image/user.png" class="profile-pic">
-            <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
-            <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
+            <a href="index.php">
+                <img src="image/user.png" class="profile-pic">
+                <div class="profile-name"><?php echo $_SESSION['fullname']; ?></div>
+                <div class="profile-email"><?php echo $_SESSION['email']; ?></div>
             </a>
         </div>
     </div>
@@ -373,6 +131,11 @@ h1{
     <p class="email"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
 </div>
 
+    <div class="stats">
+        Active Listings: <?php echo $activeListings; ?> |
+        Pending Claims: <?php echo $pendingClaims; ?>
+    </div>
+
 <div class="button-row">
     <a href="profile.php" class="gray-btn">My Listed Items</a>
     <a href="viewclaims.php" class="primary-btn">View Claims</a>
@@ -389,7 +152,19 @@ h1{
     <p style="text-align:center;margin-top:30px;">No claims yet for your listed items.</p>
 <?php endif; ?>
 
-<?php foreach($claims_by_item as $item_id => $claims): ?>
+<?php foreach($claims_by_item as $item_id => $claims):
+        $q_result = mysqli_query($conn, "
+            SELECT question 
+            FROM verification_questions 
+            WHERE item_id = '{$row['item_id']}'
+        ");
+
+        $questions = [];
+        while($q = mysqli_fetch_assoc($q_result)){
+            $questions[] = $q['question'];
+        }
+        ?>
+
 <div class="claim-card">
     <h3>Claims for FI-<?php echo $claims[0]['item_code']; ?></h3>
 
@@ -400,24 +175,31 @@ h1{
 
         <br>
         <p><strong>Answers:</strong></p>
-        <p>- <?php echo htmlspecialchars($claim['answer1']); ?></p>
-        <p>- <?php echo htmlspecialchars($claim['answer2']); ?></p>
-        <p>- <?php echo htmlspecialchars($claim['answer3']); ?></p>
+        <?php
+        $item_questions = json_decode($claims[0]['questions'] ?? '[]', true);
+        $claim_answers  = json_decode($claim['answers'] ?? '[]', true);
+        if(!empty($claim_answers)){
+            foreach($claim_answers as $ai => $ans){
+                $q_label = isset($item_questions[$ai]) ? htmlspecialchars($item_questions[$ai]) : 'Question '.($ai+1);
+                echo '<p><em>'.$q_label.'</em><br>- '.htmlspecialchars($ans).'</p>';
+            }
+        } else {
+            echo '<p style="color:#888;">No answers recorded.</p>';
+        }
+        ?>
 
-        <?php if($claim['status']=="pending"): ?>
+        <?php if($claim['status'] == "pending"): ?>
             <div class="button-group">
                 <a href="?accept=<?php echo $claim['id']; ?>" class="accept">Accept</a>
                 <a href="?reject=<?php echo $claim['id']; ?>" class="reject">Reject</a>
                 <a href="https://outlook.live.com/mail/0/deeplink/compose?to=<?php echo urlencode($claim['email']); ?>&subject=<?php echo urlencode('FoundIt Claim for Item FI-'.$claim['item_code']); ?>"
-class="message" target="_blank">
-Message
-</a>
+                   class="message" target="_blank">Message</a>
             </div>
         <?php else: ?>
             <p><strong>Status:</strong>
-                <?php if($claim['status']=="approved"): ?>
+                <?php if($claim['status'] == "approved"): ?>
                     <span style="color:green; font-weight:bold;">Approved</span>
-                <?php elseif($claim['status']=="rejected"): ?>
+                <?php elseif($claim['status'] == "rejected"): ?>
                     <span style="color:red; font-weight:bold;">Rejected</span>
                 <?php endif; ?>
             </p>
@@ -433,12 +215,7 @@ Message
 
 </div>
 
-<script>
-function toggleMenu(){
-    document.getElementById("sidebar").classList.toggle("active");
-    document.getElementById("overlay").classList.toggle("active");
-}
-</script>
+<script src="js/global.js"></script>
 
 </body>
 </html>
