@@ -38,6 +38,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $_SESSION['user_ID'] = mysqli_insert_id($conn);
             $_SESSION['fullname'] = $fullname;
             $_SESSION['email'] = $email;
+            $_SESSION['role'] = 'user';
 
             header("Location: home.php");
             exit();
