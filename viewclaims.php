@@ -156,7 +156,7 @@ $pendingClaims = mysqli_fetch_assoc($pendingClaims_query)['total'];
         $q_result = mysqli_query($conn, "
             SELECT question 
             FROM verification_questions 
-            WHERE item_id = '{$row['item_id']}'
+            WHERE item_id = '$item_id'
         ");
 
         $questions = [];
