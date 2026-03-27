@@ -27,8 +27,6 @@
         <div class="profile-content">
             <a href="index.php">
                 <img src="image/user.png" class="profile-pic">
-                <div class="profile-name">Francine Panganiban</div>
-                <div class="profile-email">fastodomingo@student.hau.edu.ph</div>
             </a>
         </div>
     </div>
